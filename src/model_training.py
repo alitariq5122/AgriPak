@@ -1,39 +1,21 @@
+
 import pandas as pd
 import joblib
 
-# Model evaluation metrics
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
     confusion_matrix
 )
 
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
+# Load the saved training and testing datasets
+X_train = pd.read_csv("data/splits/X_train.csv")
+X_test = pd.read_csv("data/splits/X_test.csv")
+y_train = pd.read_csv("data/splits/y_train.csv").squeeze("columns")
+y_test = pd.read_csv("data/splits/y_test.csv").squeeze("columns")
 
-# Load dataset
-df = pd.read_excel("data/crop_data.xlsx")
-
-# Separate input features and target variable
-X = df.drop("low_yield_risk", axis=1)
-y = df["low_yield_risk"]
-
-# Encode categorical variables
-X = pd.get_dummies(
-    X,
-    columns=["region", "soil_type", "crop", "weather_condition"],
-    dtype=int
-)
-
-# Split dataset
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y,
-    test_size=0.2,
-    random_state=42,
-    stratify=y
-)
-
-# Create Random Forest model
+# Initialize Random Forest model
 model = RandomForestClassifier(
     n_estimators=100,
     random_state=42
@@ -42,31 +24,24 @@ model = RandomForestClassifier(
 # Train the model
 model.fit(X_train, y_train)
 
-print("AGRI PAK - MODEL TRAINING")
-print("=" * 40)
-print("Random Forest model trained successfully!")
-print("Training records:", len(X_train))
-print("Testing records:", len(X_test))
-
 # Make predictions
-y_pred = model.predict(X_test)
+predictions = model.predict(X_test)
 
-# Calculate model accuracy
-accuracy = accuracy_score(y_test, y_pred)
+# Evaluate the model
+accuracy = accuracy_score(y_test, predictions)
 
-# Display evaluation results
-print("\nMODEL EVALUATION")
-print("=" * 40)
+print("AGRIPAK - RANDOM FOREST MODEL TRAINING")
+print("=" * 50)
 
-print("\nAccuracy:", accuracy * 100, "%")
+print(f"\nAccuracy: {accuracy * 100:.2f}%")
 
 print("\nClassification Report:")
-print(classification_report(y_test, y_pred))
+print(classification_report(y_test, predictions))
 
-print("\nConfusion Matrix:")
-print(confusion_matrix(y_test, y_pred))
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, predictions))
 
-# Save the trained model
+# Save trained model
 joblib.dump(model, "agri_pak_model.pkl")
 
-print("\nModel saved successfully!")
+print("\nRandom Forest model saved successfully!")

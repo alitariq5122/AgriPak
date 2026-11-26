@@ -1,64 +1,78 @@
+
 import pandas as pd
 
-from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import classification_report, confusion_matrix
-
-# Load dataset
-df = pd.read_excel("data/crop_data.xlsx")
-
-# Separate input features and target variable
-X = df.drop("low_yield_risk", axis=1)
-y = df["low_yield_risk"]
-
-# Encode categorical variables
-X = pd.get_dummies(
-    X,
-    columns=["region", "soil_type", "crop", "weather_condition"],
-    dtype=int
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    classification_report,
+    confusion_matrix
 )
 
-# Split dataset
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y,
-    test_size=0.2,
-    random_state=42,
-    stratify=y
-)
+# Load the saved training and testing datasets
+X_train = pd.read_csv("data/splits/X_train.csv")
+X_test = pd.read_csv("data/splits/X_test.csv")
+y_train = pd.read_csv("data/splits/y_train.csv").squeeze("columns")
+y_test = pd.read_csv("data/splits/y_test.csv").squeeze("columns")
 
-# Train Logistic Regression
-logistic_model = LogisticRegression(max_iter=1000)
-logistic_model.fit(X_train, y_train)
+# Initialize models
+models = {
+    "Logistic Regression": LogisticRegression(max_iter=1000),
+    "Random Forest": RandomForestClassifier(
+        n_estimators=100,
+        random_state=42
+    )
+}
 
-# Train Random Forest
-random_model = RandomForestClassifier(
-    n_estimators=100,
-    random_state=42
-)
-random_model.fit(X_train, y_train)
+results = []
 
-# Make predictions
-logistic_pred = logistic_model.predict(X_test)
-random_pred = random_model.predict(X_test)
+print("AGRIPAK - MODEL COMPARISON")
+print("=" * 50)
 
-# Calculate accuracy
-logistic_accuracy = accuracy_score(y_test, logistic_pred)
-random_accuracy = accuracy_score(y_test, random_pred)
+# Train and evaluate each model
+for name, model in models.items():
 
-# Display comparison
-print("AGRI PAK - MODEL COMPARISON")
-print("=" * 40)
+    model.fit(X_train, y_train)
 
-print("Logistic Regression Accuracy:",
-      round(logistic_accuracy * 100, 2), "%")
+    predictions = model.predict(X_test)
 
-print("Random Forest Accuracy:",
-      round(random_accuracy * 100, 2), "%")
+    accuracy = accuracy_score(y_test, predictions)
+    precision = precision_score(y_test, predictions)
+    recall = recall_score(y_test, predictions)
+    f1 = f1_score(y_test, predictions)
 
-print("\nLOGISTIC REGRESSION CLASSIFICATION REPORT")
-print(classification_report(y_test, logistic_pred))
+    results.append({
+        "Model": name,
+        "Accuracy": accuracy,
+        "Precision": precision,
+        "Recall": recall,
+        "F1-Score": f1
+    })
 
-print("\nLOGISTIC REGRESSION CONFUSION MATRIX")
-print(confusion_matrix(y_test, logistic_pred))
+    print(f"\n{name}")
+    print("-" * 40)
+    print(f"Accuracy:  {accuracy * 100:.2f}%")
+    print(f"Precision: {precision:.4f}")
+    print(f"Recall:    {recall:.4f}")
+    print(f"F1-Score:  {f1:.4f}")
+
+    print("\nClassification Report:")
+    print(classification_report(y_test, predictions))
+
+    print("Confusion Matrix:")
+    print(confusion_matrix(y_test, predictions))
+
+# Display final comparison
+comparison = pd.DataFrame(results)
+
+print("\nFINAL MODEL COMPARISON")
+print("=" * 50)
+print(comparison.to_string(index=False))
+
+# Save comparison results
+comparison.to_csv("data/model_comparison_results.csv", index=False)
+
+print("\nComparison results saved successfully!")

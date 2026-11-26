@@ -1,30 +1,13 @@
-#import pandas as pd
-# Load the agricultural dataset
-#df = pd.read_excel("data/crop_data.xlsx")
-
-# Separate input features (X) and target variable (y)
-#X = df.drop("low_yield_risk", axis=1)
-#y = df["low_yield_risk"]
-
-# Display results
-#print("AGRI PAK - DATA PREPROCESSING")
-#print("=" * 40)
-
-#print("\nInput Features (X):")
-#print(X.head())
-
-#print("\nTarget Variable (y):")
-#print(y.head())
-
-#print("\nFeature Shape:", X.shape)
-#print("Target Shape:", y.shape)
 
 import pandas as pd
+import os
 
-# Load the agricultural dataset
-df = pd.read_excel("data/crop_data.xlsx")
+from sklearn.model_selection import train_test_split
 
-# Separate input features (X) and target variable (y)
+# Load cleaned agricultural dataset
+df = pd.read_csv("data/crop_data_cleaned.csv")
+
+# Separate input features and target variable
 X = df.drop("low_yield_risk", axis=1)
 y = df["low_yield_risk"]
 
@@ -35,7 +18,7 @@ X = pd.get_dummies(
     dtype=int
 )
 
-# Display results
+# Display encoded features
 print("AGRI PAK - CATEGORICAL ENCODING")
 print("=" * 40)
 
@@ -47,8 +30,6 @@ print(X.columns.tolist())
 
 print("\nNew Feature Shape:", X.shape)
 
-from sklearn.model_selection import train_test_split
-
 # Split dataset into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(
     X,
@@ -58,7 +39,17 @@ X_train, X_test, y_train, y_test = train_test_split(
     stratify=y
 )
 
-# Display results
+# Create folder for split files
+os.makedirs("data/splits", exist_ok=True)
+
+# Save training and testing datasets
+X_train.to_csv("data/splits/X_train.csv", index=False)
+X_test.to_csv("data/splits/X_test.csv", index=False)
+
+y_train.to_csv("data/splits/y_train.csv", index=False)
+y_test.to_csv("data/splits/y_test.csv", index=False)
+
+# Display split results
 print("\nAGRI PAK - TRAIN TEST SPLIT")
 print("=" * 40)
 
@@ -67,3 +58,5 @@ print("Testing Features:", X_test.shape)
 
 print("\nTraining Target:", y_train.shape)
 print("Testing Target:", y_test.shape)
+
+print("\nTraining and testing files saved successfully!")
