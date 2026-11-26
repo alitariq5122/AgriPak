@@ -45,7 +45,7 @@ plt.show()
 # Create a new figure
 plt.figure(figsize=(7, 5))
 
-# Create histogram which shows 
+# Create histogram which shows
 # df["rainfall_mm"] selects the rainfall column.
 # bins=20 divides rainfall values into 20 intervals.
 # edgecolor="black" adds borders to the bars.
